@@ -5,8 +5,21 @@ var steam = require("steam"),
     bot = new steam.SteamClient(),
     Dota2 = new dota2.Dota2Client(bot, true);
 
+var nodemailer = require('nodemailer');
+
 global.config = require("./config");
 
+var transporter = nodemailer.createTransport();
+/*
+// send mail with defined transport object
+nodemailer.sendMail({
+        transport : transporter, //pass your transport
+        sender : 'chetmichals@email.com' ,
+        to : 'thedrkirby@gmail.com',
+        subject : "SUBJECT",
+        html: '<p> Hello World </p>'
+      });
+*/
 /* Steam logic */
 var onSteamLogOn = function onSteamLogOn(){
         bot.setPersonaState(steam.EPersonaState.Busy); // to display your bot's status as "Online"
@@ -15,7 +28,7 @@ var onSteamLogOn = function onSteamLogOn(){
 
         Dota2.launch();
         Dota2.on("ready", function() {
-            console.log("Node-dota2 ready.");
+			//Dota2.checkNewBloom();
             /* Note:  Should not declare new event listeners nested inside of
             'ready', else you could end up with duplicated handlers if 'ready'
             is fired multiple times.  Exception is made within this test file
@@ -133,6 +146,8 @@ var onSteamLogOn = function onSteamLogOn(){
         Dota2.on("unready", function onUnready(){
             console.log("Node-dota2 unready.");
         });
+		
+		
 
         Dota2.on("chatMessage", function(channel, personaName, message) {
             // util.log([channel, personaName, message].join(", "));
