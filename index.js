@@ -1,185 +1,154 @@
-var steam = require("steam"),
-    util = require("util"),
+var EventEmitter = require('events').EventEmitter,
     fs = require("fs"),
-    dota2 = require("../"),
-    bot = new steam.SteamClient(),
-    Dota2 = new dota2.Dota2Client(bot, true);
+    util = require("util"),
+    bignumber = require("bignumber.js"),
+    Schema = require('protobuf').Schema,
+    base_gcmessages = new Schema(fs.readFileSync(__dirname + "/generated/base_gcmessages.desc")),
+    gcsdk_gcmessages = new Schema(fs.readFileSync(__dirname + "/generated/gcsdk_gcmessages.desc")),
+    dota_gcmessages = new Schema(fs.readFileSync(__dirname + "/generated/dota_gcmessages.desc")),
+    protoMask = 0x80000000,
+    Dota2 = exports;
 
-global.config = require("./config");
+var Dota2Client = function Dota2Client(steamClient, debug) {
+  EventEmitter.call(this);
 
-/* Steam logic */
-var onSteamLogOn = function onSteamLogOn(){
-        bot.setPersonaState(steam.EPersonaState.Busy); // to display your bot's status as "Online"
-        bot.setPersonaName(config.steam_name); // to change its nickname
-        util.log("Logged on.");
+  this.debug = debug || false;
+  this._client = steamClient;
+  this._appid = 570;
+  this.chatChannels = []; // Map channel names to channel data.
+  this._gcReady = false,
+  this._gcClientHelloIntervalId = null;
 
-        Dota2.launch();
-        Dota2.on("ready", function() {
-            console.log("Node-dota2 ready.");
-			//Dota2.checkNewBloom();
-            /* Note:  Should not declare new event listeners nested inside of
-            'ready', else you could end up with duplicated handlers if 'ready'
-            is fired multiple times.  Exception is made within this test file
-            for the same of keeping relevant samples together. */
+  var self = this;
+  this._client.on("fromGC", function fromGC(app, type, message, callback) {
+    /* Routes messages from Game Coordinator to their handlers. */
+    callback = callback || null;
 
-            /* INVENTORY */
-            // Dota2.setItemPositions([[ITEM ID, POSITION]]);
-            // Dota2.deleteItem(ITEM ID);
+    var kMsg = type & ~protoMask;
+    if (self.debug) util.log("Dota2 fromGC: " + [app, kMsg].join(", "));  // TODO:  Turn type-protoMask into key name.
 
-            /* MATCHES */
-                // Event based
-            // Dota2.matchDetailsRequest(246546269);
-            // Dota2.on("matchData", function (matchId, matchData) {
-            //     console.log(JSON.stringify(matchData, null, 2));
-            // });
-            // Dota2.matchmakingStatsRequest();
-            // Dota2.on("matchmakingStatsData", function(waitTimesByGroup, searchingPlayersByGroup, disabledGroups, matchmakingStatsResponse) {
-            //     console.log(JSON.stringify(matchmakingStatsResponse, null, 2));
-            // });
+    if (kMsg in self._handlers) {
+      if (callback) {
+        self._handlers[kMsg].call(self, message, callback);
+      }
+      else {
+        self._handlers[kMsg].call(self, message);
+      }
+    }
+    else {
+      self.emit("unhandled", kMsg);
+    }
+  });
 
-                // Callback based
-            // Dota2.matchDetailsRequest(246546269, function(err, body){
-            //     if (err) console.log(err);
-            //     console.log(JSON.stringify(body));
-            // });
-
-            /* COMMUNITY */
-                // Event based
-            // Dota2.profileRequest(28956443, true);
-            // Dota2.on("profileData", function (accountId, profileData) {
-            //     console.log(JSON.stringify(profileData, null, 2));
-            // });
-            // Dota2.passportDataRequest(28956443);
-            // Dota2.on("passportData", function (accountId, passportData) {
-            //     console.log(passportData.leagueGuesses.stampedPlayers);
-            // });
-            // Dota2.hallOfFameRequest();
-            // Dota2.on("hallOfFameData", function(week, featuredPlayers, featuredFarmer, hallOfFameResponse) {
-            //     console.log(JSON.stringify(hallOfFameResponse, null, 2));
-            // });
-
-                // Callback based
-            // Dota2.profileRequest(28956443, true, function(err, body){
-            //     console.log(JSON.stringify(body));
-            // });
-            // Dota2.passportDataRequest(28956443, function(err, body){
-            //     console.log(JSON.stringify(body));
-            // });
-            // Dota2.hallOfFameRequest(null, function(err, body){
-            //     console.log(JSON.stringify(body));
-            // });
-
-            /* CHAT */
-                // Event based
-            // Dota2.joinChat("rj");
-            // setTimeout(function(){ Dota2.sendMessage("rj", "wowoeagnaeigniaeg"); }, 5000);
-            // setTimeout(function(){ Dota2.leaveChat("rj"); }, 10000);
-
-            /* GUILD */
-            // Dota2.requestGuildData();
-            // Dota2.on("guildOpenPartyData", function(guildId, openParties){
-                    // Event based
-                // Dota2.inviteToGuild(guildId, 28956443);
-                // Dota2.setGuildAccountRole(guildId, 28956443, 2);
-                // Dota2.cancelInviteToGuild(guildId, 75028261);
-
-                    // Callback based
-                // Dota2.inviteToGuild(guildId, 28956443, function(err, body){
-                //     console.log(JSON.stringify(body));
-                // });
-                // Dota2.cancelInviteToGuild(guildId, 75028261, function(err, body){
-                //     console.log(JSON.stringify(body));
-                // });
-                // Dota2.setGuildAccountRole(guildId, 28956443, 2, function(err, body){
-                //     console.log(JSON.stringify(body));
-                // });
-
-                    // Doing chat stuffs.
-                // var guildChannelName = util.format("Guild_%s", guildId);
-                // Dota2.joinChat(guildChannelName, dota2.DOTAChatChannelType_t.DOTAChannelType_Guild);
-
-                // setTimeout(function(){ Dota2.sendMessage(guildChannelName, "wowoeagnaeigniaeg"); }, 5000);
-                // setTimeout(function(){ Dota2.leaveChat(guildChannelName); }, 10000);
-            // });
-
-            /* LOBBIES */
-            // Dota2.createPracticeLobby("Techies cheese", "boop", Dota2.ServerRegion.PERFECTWORLDTELECOM, Dota2.GameMode.DOTA_GAMEMODE_AR, function(err, body){
-            //     console.log(JSON.stringify(body));
-            // });
-
-            // setTimeout(function(){
-            //     Dota2.leavePracticeLobby(function(err, body){
-            //         console.log(JSON.stringify(body));
-            //     });
-            // }, 60000);
-
-            /* LEAGUES */
-            // Dota2.leaguesInMonthRequest(10, 2013, function(err, data) { // November 2013
-            //     console.log('Found ' + data.leagues.length + ' leagues full of schedule data :D');
-            // });
-
-            // Dota2.leaguesInMonthRequest(10, 2013); // November 2013
-            // Dota2.on("leaguesInMonthResponse",  function(err, data) {
-            //     console.log('Found ' + data.leagues.length + ' leagues full of schedule data :D');
-            // });
-
-            /* SOURCETV */
-            // Dota2.findSourceTVGames({}, function(data) {    // May 2015
-            //   console.log('Successfully received SourceTVGames: ' + data.games);
-            // })
-
-
-        });
-
-        Dota2.on("unready", function onUnready(){
-            console.log("Node-dota2 unready.");
-        });
-		
-		
-
-        Dota2.on("chatMessage", function(channel, personaName, message) {
-            // util.log([channel, personaName, message].join(", "));
-        });
-
-        Dota2.on("guildInvite", function(guildId, guildName, inviter) {
-            // Dota2.setGuildAccountRole(guildId, 75028261, 3);
-        });
-
-
-        Dota2.on("unhandled", function(kMsg) {
-            util.log("UNHANDLED MESSAGE " + kMsg);
-        });
-        // setTimeout(function(){ Dota2.exit(); }, 5000);
-    },
-    onSteamSentry = function onSteamSentry(sentry) {
-        util.log("Received sentry.");
-        require('fs').writeFileSync('sentry', sentry);
-    },
-    onSteamServers = function onSteamServers(servers) {
-        util.log("Received servers.");
-        fs.writeFile('servers', JSON.stringify(servers));
-    },
-    onWebSessionID = function onWebSessionID(webSessionID) {
-        util.log("Received web session id.");
-        // steamTrade.sessionID = webSessionID;
-        bot.webLogOn(function onWebLogonSetTradeCookies(cookies) {
-            util.log("Received cookies.");
-            for (var i = 0; i < cookies.length; i++) {
-                // steamTrade.setCookie(cookies[i]);
-            }
-        });
-    };
-
-// Login, only passing authCode if it exists
-var logOnDetails = {
-    "accountName": config.steam_user,
-    "password": config.steam_pass,
+  this._sendClientHello = function() {
+    if (self.debug) util.log("Sending ClientHello");
+    if (!self._client) {
+      util.log("Where the fuck is _client?");
+    }
+    else {
+      self._client.toGC(self._appid, (Dota2.EGCBaseClientMsg.k_EMsgGCClientHello | protoMask), gcsdk_gcmessages.CMsgClientHello.serialize({}));
+    }
+  };
 };
-if (config.steam_guard_code) logOnDetails.authCode = config.steam_guard_code;
-var sentry = fs.readFileSync('sentry');
-if (sentry.length) logOnDetails.shaSentryfile = sentry;
-bot.logOn(logOnDetails);
-bot.on("loggedOn", onSteamLogOn)
-    .on('sentry', onSteamSentry)
-    .on('servers', onSteamServers)
-    .on('webSessionID', onWebSessionID);
+util.inherits(Dota2Client, EventEmitter);
+
+require("./generated/messages");
+
+// Expose enums
+Dota2Client.prototype.ServerRegion = Dota2.ServerRegion;
+Dota2Client.prototype.GameMode = Dota2.GameMode;
+Dota2Client.prototype.ToAccountID = function(accid){
+  return bignumber(accid).minus('76561197960265728')-0;
+};
+Dota2Client.prototype.ToSteamID = function(accid){
+  return bignumber(accid).plus('76561197960265728')+"";
+};
+
+// Methods
+Dota2Client.prototype.launch = function() {
+  /* Reports to Steam that we are running Dota 2. Initiates communication with GC with EMsgGCClientHello */
+  if (this.debug) util.log("Launching Dota 2");
+  this.AccountID = this.ToAccountID(this._client.steamID);
+  this._client.gamesPlayed([this._appid]);
+
+  // Keep knocking on the GCs door until it accepts us.
+  this._gcClientHelloIntervalId = setInterval(this._sendClientHello, 2500);
+};
+
+Dota2Client.prototype.exit = function() {
+  /* Reports to Steam we are not running any apps. */
+  if (this.debug) util.log("Exiting Dota 2");
+
+  /* stop knocking if exit comes before ready event */
+  if (this._gcClientHelloIntervalId) {
+      clearInterval(this._gcClientHelloIntervalId);
+      this._gcClientHelloIntervalId = null;
+  }
+  this._gcReady = false;
+  
+  if(this._client.loggedOn) this._client.gamesPlayed([]);
+};
+
+
+// Handlers
+
+var handlers = Dota2Client.prototype._handlers = {};
+
+handlers[Dota2.EGCBaseClientMsg.k_EMsgGCClientWelcome] = function clientWelcomeHandler() {
+  /* Response to our k_EMsgGCClientHello, now we can execute other GC commands. */
+
+  // Only execute if _gcClientHelloIntervalID, otherwise it's already been handled (and we don't want to emit multiple 'ready');
+  if (this._gcClientHelloIntervalId) {
+    clearInterval(this._gcClientHelloIntervalId);
+    this._gcClientHelloIntervalId = null;
+
+    if (this.debug) util.log("Received client welcome.");
+    this._gcReady = true;
+    this.emit("ready");
+  }
+};
+
+handlers[Dota2.EGCBaseClientMsg.k_EMsgGCClientConnectionStatus] = function gcClientConnectionStatus(message) {
+  /* Catch and handle changes in connection status, cuz reasons u know. */
+
+  var status = gcsdk_gcmessages.CMsgConnectionStatus.parse(message).status;
+
+  switch (status) {
+    case Dota2.GCConnectionStatus.GCConnectionStatus_HAVE_SESSION:
+      if (this.debug) util.log("GC Connection Status regained.");
+
+      // Only execute if _gcClientHelloIntervalID, otherwise it's already been handled (and we don't want to emit multiple 'ready');
+      if (this._gcClientHelloIntervalId) {
+        clearInterval(this._gcClientHelloIntervalId);
+        this._gcClientHelloIntervalId = null;
+
+        this._gcReady = true;
+        this.emit("ready");
+      }
+      break;
+
+    default:
+      if (this.debug) util.log("GC Connection Status unreliable - " + status);
+
+      // Only execute if !_gcClientHelloIntervalID, otherwise it's already been handled (and we don't want to emit multiple 'unready');
+      if (!this._gcClientHelloIntervalId) {
+        this._gcClientHelloIntervalId = setInterval(this._sendClientHello, 2500); // Continually try regain GC session
+
+        this._gcReady = false;
+        this.emit("unready");
+      }
+      break;
+  }
+};
+
+Dota2.Dota2Client = Dota2Client;
+
+require("./handlers/inventory");
+require("./handlers/chat");
+require("./handlers/guild");
+require("./handlers/community");
+require("./handlers/match");
+require("./handlers/lobbies");
+require("./handlers/leagues");
+require("./handlers/sourcetv");
+require("./handlers/newbloom");
