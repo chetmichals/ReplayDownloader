@@ -26,7 +26,25 @@ Dota2.Dota2Client.prototype.checkNewBloom = function() {
 
   this._client.toGC(this._appid, (Dota2.EDOTAGCMsg.k_EMsgGCToGCUpdateIngameEventDataBroadcast | protoMask), payload);
 };
-	
+
+/*
+Dota2.Dota2Client.prototype.requestMatchDetails = function (matchID)
+{
+//Makes a request to the server for the details of the passed in match, to be decoded by another function
+	if (!this._gcReady) {
+		if (this.debug) util.log("GC not ready, please listen for the 'ready' event.");
+    return null;
+  }
+
+  if (this.debug) util.log("Trying to Get Match Details for Match " + matchID);
+  var payload = dota_gcmessages_client.CMsgGCMatchDetailsRequest.serialize({
+	  "matchId":matchID
+  });
+
+  this._client.toGC(this._appid, (Dota2.EDOTAGCMsg.k_EMsgGCMatchDetailsRequest | protoMask), payload);
+
+}	
+	*/
 	
 //Handlers
 	
@@ -57,16 +75,20 @@ handlers[Dota2.EDOTAGCMsg.k_EMsgGCToClientNewBloomTimingUpdated] = function newB
 	console.log("Bonus Amount:" + response.bonusAmount);
 	console.log("Stand By Time:" + response.standbyDuration);
 	var myDate = new Date(Number(response.nextTransitionTime)*1000);
+	var December2015 = new Date(1448928000 * 1000);
 	
-	var outputText = "Beast Active: " + response.isActive + " Next Time: " + myDate.toUTCString() + " Bonus Amount: " + response.bonusAmount;
+	var outputText = "Beast Active: " + response.isActive + " Next Time: " + myDate.toLocaleString() + "EST " + " Bonus Amount: " + response.bonusAmount;
 	
-	transporter.sendMail({
-    from: 'YearBeastInfo@dotahatstats.com',
-    to: 'thedrkirby@gmail.com, 15619299367@tmomail.net',
-    subject: 'Year Beast Status',
-    text: outputText
-	});
-	console.log("Sent Email");
+	if (December2015.getTime() > myDate.getTime()) //The server will output the time as January 2016 to push updates to the daily bonus, don't want to report this
+	{
+		transporter.sendMail({
+		from: 'YearBeastInfo@dotahatstats.com',
+		to: 'thedrkirby@gmail.com, 15619299367@tmomail.net',
+		subject: 'Year Beast Status',
+		text: outputText
+		});
+		console.log("Sent Email");
+	}
 	
 	  
 };

@@ -9,6 +9,9 @@ var nodemailer = require('nodemailer');
 
 global.config = require("./config");
 
+/* database stuff */
+
+ 
 var transporter = nodemailer.createTransport();
 /*
 // send mail with defined transport object
@@ -28,6 +31,12 @@ var onSteamLogOn = function onSteamLogOn(){
 
         Dota2.launch();
         Dota2.on("ready", function() {
+			//Dota2.matchDetailsRequest(1272369946,null); 
+			//Dota2.initalizeCallBack();
+			checkForGames();
+			//Dota2.profileRequest(Dota2.ToAccountID('76561198010772924'),true,null);
+			
+			
 			//Dota2.checkNewBloom();
             /* Note:  Should not declare new event listeners nested inside of
             'ready', else you could end up with duplicated handlers if 'ready'
@@ -195,3 +204,10 @@ bot.on("loggedOn", onSteamLogOn)
     .on('sentry', onSteamSentry)
     .on('servers', onSteamServers)
     .on('webSessionID', onWebSessionID);
+	
+checkForGames = function()
+{
+		Dota2.getPlayerMatchHistory(50507196,null);
+		//setTimeout(this.checkForGames,3600000);
+		setTimeout(checkForGames,3600000);
+}

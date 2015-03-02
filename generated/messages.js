@@ -108,7 +108,10 @@ Dota2.EDOTAGCMsg = {
 	k_EMsgGCToClientNewBloomTimingUpdated: 7575,
 	k_EMsgServerToGCGetIngameEventData: 7551,
 	k_EMsgGCNewBloomModeState: 7421,
-	k_EMsgGCToGCUpdateIngameEventDataBroadcast: 7552
+	k_EMsgGCToGCUpdateIngameEventDataBroadcast: 7552,
+	
+	k_EMsgDOTAGetPlayerMatchHistory: 7408,
+	k_EMsgDOTAGetPlayerMatchHistoryResponse: 7409
 	
 	
 };
