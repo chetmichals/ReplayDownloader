@@ -82,30 +82,52 @@ Dota2.Dota2Client.prototype.downloadMatch = function(replayURL,infoCode,matchID)
 	//Download Replay
 	else
 	{
-		var fileName = matchID + ".dem.bz2";
-		util.log("Trying to download file " + fileName);
-		var download = fs.createWriteStream(fileName);
-		var request = http.get(replayURL, function(response) 
+		/*A number of things can go wrong when trying to download, so there is a simply error handling to keep the program from crashing. 
+		
+		I tried to do try/catches on specific functions, but I was getting a the following error.		
+
+		(node) warning: Recursive process.nextTick detected. This will break in the next version of node. Please use setImmediate for recursive deferral.
+		RangeError: Maximum call stack size exceeded
+		*/
+		try 
 		{
-			response.pipe(download);
-			download.on('finish', function() 
+			var fileName = matchID + ".dem.bz2";
+			util.log("Trying to download file " + fileName);
+			var download = fs.createWriteStream(fileName);
+			var request = http.get(replayURL, function(response) 
 			{
-				db.run("INSERT INTO matchLog (matchID, downloaded, availability) values (?,1,'REPLAY_AVALIABLE')",matchID);
-				download.close(function() // close() is async, call cb after close completes.
+				response.pipe(download);
+				download.on('finish', function() 
 				{
-					//Uncompress File and save it
-					var compressedData = fs.readFileSync(fileName);
-					var data = Bunzip.decode(compressedData);
-					
-					//This line would save it locally, but we are just going to upload it instead
-					//fs.writeFileSync(matchID + ".dem", data);
-					
-					//Uploads file to dropbox. First parma in an OAuth2 key. Here, we have it hard coded to be the key to my dropbox account. Second is the data, third is a file name. 
-					fileupload("bgPNnVN3Z1gAAAAAAAAGHrRi3NP06mRy1vx5ZTJAhLMjLCTG6S89mGqNmVQDnO8Q",data,matchID+".dem");
-				});  
+					db.run("INSERT INTO matchLog (matchID, downloaded, availability) values (?,1,'REPLAY_AVALIABLE')",matchID);
+					download.close(function() // close() is async, call cb after close completes.
+					{
+						//Uncompress File and save it
+						var compressedData = fs.readFileSync(fileName);
+						
+						
+						var data = Bunzip.decode(compressedData);
+						
+						//This line would save it locally, but we are just going to upload it instead
+						//fs.writeFileSync(matchID + ".dem", data);
+						
+						//Uploads file to dropbox. First parma in an OAuth2 key. Here, we have it hard coded to be the key to my dropbox account. Second is the data, third is a file name. 
+						fileupload("bgPNnVN3Z1gAAAAAAAAGHrRi3NP06mRy1vx5ZTJAhLMjLCTG6S89mGqNmVQDnO8Q",data,matchID+".dem");
+						
+						/*catch(err)
+						{
+							//If an error occurs, exit out of the function and don't make the replay as successfully downloaded
+							console.log("Error downloading match " + matchID + ". Will try again later");
+						}*/
+					}); 
+				});
 			});
-		});
-		util.log(replayURL);
+			util.log(replayURL);
+		}
+		catch(err)
+		{
+			console.log("An error has occured when trying to download:" + err);
+		}
 	}
 }
 
