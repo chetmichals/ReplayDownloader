@@ -32,5 +32,7 @@ sudo update-alternatives --install /usr/bin/node node /usr/bin/nodejs 10
 
 Uses the following packages
 nodemailer
+
 sqlite
+
 seek-bzip
