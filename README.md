@@ -29,3 +29,8 @@ sudo apt-get install npm
 Then make a Symbolic link with the following
 
 sudo update-alternatives --install /usr/bin/node node /usr/bin/nodejs 10
+
+Uses the following packages
+nodemailer
+sqlite
+seek-bzip
