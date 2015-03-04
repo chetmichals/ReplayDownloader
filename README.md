@@ -12,15 +12,20 @@ The gist of this program is that it listens for the message indicating the Year 
 Edit: Some notes about setting everything up.
 
 Uses node-steam 0.6.7
+
 Uses bignumber.js 2.0.0
+
 Uses node 0.10.25
 
 On Unbutu, the following is how you install.
 
 sudo apt-get update
+
 sudo apt-get install nodejs
+
 sudo apt-get install npm
 
 
 Then make a Symbolic link with the following
+
 sudo update-alternatives --install /usr/bin/node node /usr/bin/nodejs 10
