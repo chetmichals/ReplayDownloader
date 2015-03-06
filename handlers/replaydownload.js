@@ -85,26 +85,38 @@ Dota2.Dota2Client.prototype.downloadMatch = function(replayURL,infoCode,matchID)
 		var fileName = matchID + ".dem.bz2";
 		util.log("Trying to download file " + fileName);
 		var download = fs.createWriteStream(fileName);
+		
 		var request = http.get(replayURL, function(response) 
 		{
 			response.pipe(download);
 			download.on('finish', function() 
 			{
 				db.run("INSERT INTO matchLog (matchID, downloaded, availability) values (?,1,'REPLAY_AVALIABLE')",matchID);
+				
 				download.close(function() // close() is async, call cb after close completes.
 				{
-					//Uncompress File and save it
-					var compressedData = fs.readFileSync(fileName);
-					var data = Bunzip.decode(compressedData);
-					
-					//This line would save it locally, but we are just going to upload it instead
-					fs.writeFileSync(matchID + ".dem", data);
-					
-					//Uploads file to dropbox. First parma in an OAuth2 key. Here, we have it hard coded to be the key to my dropbox account. Second is the data, third is a file name. 
-					fileupload("bgPNnVN3Z1gAAAAAAAAGHrRi3NP06mRy1vx5ZTJAhLMjLCTG6S89mGqNmVQDnO8Q",data,matchID+".dem");
-				});  
+					try
+					{
+						//Uncompress File and save it
+						var compressedData = fs.readFileSync(fileName);
+						var data = Bunzip.decode(compressedData);
+						
+						//This line would save it locally, but we are just going to upload it instead
+						fs.writeFileSync(matchID + ".dem", data);
+						
+						//Uploads file to dropbox. First parma in an OAuth2 key. Here, we have it hard coded to be the key to my dropbox account. Second is the data, third is a file name. 
+						fileupload("bgPNnVN3Z1gAAAAAAAAGHrRi3NP06mRy1vx5ZTJAhLMjLCTG6S89mGqNmVQDnO8Q",data,matchID+".dem");
+					}
+					catch(e)
+					{
+						console.log("Error: " + e);
+					}
+				}); 
+				
 			});
 		});
+		
+		
 		util.log(replayURL);
 	}
 }
