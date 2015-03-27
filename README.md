@@ -1,21 +1,26 @@
 # node-dota2
-A Variation to the node-dota2 to track the New Bloom Year Beast 
+A Variation to the node-dota2 to Automatically download replays for the game Dota 2.
 
 Based off this version:
 https://github.com/RJacksonm1/node-dota2/tree/5806e4a54eb6bd19aaf1a547bb01a38505d71daf
 
-To run this, do 'node index.js' on the file in dota2/test. 
+To run this, do 'node index.js' on the file in dota2/test. Overall a bit hacky, it works but it needs a lot of cleaning up. 
 
-The gist of this program is that it listens for the message indicating the Year Beast's timing has changed, decodes it, and sends an email and text message alerting that the next year beast fight is coming. Its sloppy and was put together hastily, but the even is only up for 2 weeks so I just wanted something that works now. 
+To set up, you will need to create a second steam account, and friend it with your main account. I recomend turning off Steam Guard for the new account. I haven't fully fleshed out authorization with dropbox, and what I have been using up till now is a Developer App with a Generated access token. 
 
+To set up everything, rename the config_SAMPLE to config, and fill in the fields with the info you need.
+
+The program has a tendency to crash when steam is having network issues, so I recommend having something to automatically start it back up if it crashes, like Forever.
 
 Edit: Some notes about setting everything up.
+
+Uses node 0.10.25
 
 Uses node-steam 0.6.7
 
 Uses bignumber.js 2.0.0
 
-Uses node 0.10.25
+
 
 On Unbutu, the following is how you install.
 

@@ -207,7 +207,7 @@ bot.on("loggedOn", onSteamLogOn)
 	
 checkForGames = function()
 {
-		Dota2.getPlayerMatchHistory(50507196,null);
+		Dota2.getPlayerMatchHistory(config.steam32,null);
 		//setTimeout(this.checkForGames,3600000);
 		setTimeout(checkForGames,3600000);
 }
