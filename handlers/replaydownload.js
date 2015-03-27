@@ -9,6 +9,8 @@ var Dota2 = require("../index"),
 	dota_gcmessages_common = new Schema(fs.readFileSync(__dirname+"/../generated/dota_gcmessages_common.desc")),
     protoMask = 0x80000000;
 
+global.config = require("../test/config");
+	
 //DB Stuff
 var fs = require("fs");
 var file = "match.db";
@@ -90,9 +92,7 @@ Dota2.Dota2Client.prototype.downloadMatch = function(replayURL,infoCode,matchID)
 		{
 			response.pipe(download);
 			download.on('finish', function() 
-			{
-				db.run("INSERT INTO matchLog (matchID, downloaded, availability) values (?,1,'REPLAY_AVALIABLE')",matchID);
-				
+			{				
 				download.close(function() // close() is async, call cb after close completes.
 				{
 					try
@@ -105,7 +105,8 @@ Dota2.Dota2Client.prototype.downloadMatch = function(replayURL,infoCode,matchID)
 						fs.writeFileSync(matchID + ".dem", data);
 						
 						//Uploads file to dropbox. First parma in an OAuth2 key. Here, we have it hard coded to be the key to my dropbox account. Second is the data, third is a file name. 
-						fileupload("bgPNnVN3Z1gAAAAAAAAGHrRi3NP06mRy1vx5ZTJAhLMjLCTG6S89mGqNmVQDnO8Q",data,matchID+".dem");
+						fileupload(config.token,data,matchID+".dem");
+						db.run("INSERT INTO matchLog (matchID, downloaded, availability) values (?,1,'REPLAY_AVALIABLE')",matchID);
 					}
 					catch(e)
 					{

@@ -83,7 +83,7 @@ handlers[Dota2.EDOTAGCMsg.k_EMsgGCToClientNewBloomTimingUpdated] = function newB
 	{
 		transporter.sendMail({
 		from: 'YearBeastInfo@dotahatstats.com',
-		to: 'thedrkirby@gmail.com, 15619299367@tmomail.net',
+		to: 'email@gmail.com, phonenumber@tmomail.net',
 		subject: 'Year Beast Status',
 		text: outputText
 		});

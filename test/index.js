@@ -18,7 +18,7 @@ var transporter = nodemailer.createTransport();
 nodemailer.sendMail({
         transport : transporter, //pass your transport
         sender : 'chetmichals@email.com' ,
-        to : 'thedrkirby@gmail.com',
+        to : 'email@gmail.com',
         subject : "SUBJECT",
         html: '<p> Hello World </p>'
       });
