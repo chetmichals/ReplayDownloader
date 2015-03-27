@@ -1,5 +1,5 @@
-# node-dota2
-A Variation to the node-dota2 to Automatically download replays for the game Dota 2.
+# ReplayDownloader
+A Variation to node-dota2 to Automatically download replays for the game Dota 2.
 
 Based off this version:
 https://github.com/RJacksonm1/node-dota2/tree/5806e4a54eb6bd19aaf1a547bb01a38505d71daf
