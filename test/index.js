@@ -5,24 +5,8 @@ var steam = require("steam"),
     bot = new steam.SteamClient(),
     Dota2 = new dota2.Dota2Client(bot, true);
 
-var nodemailer = require('nodemailer');
-
 global.config = require("./config");
 
-/* database stuff */
-
- 
-var transporter = nodemailer.createTransport();
-/*
-// send mail with defined transport object
-nodemailer.sendMail({
-        transport : transporter, //pass your transport
-        sender : 'chetmichals@email.com' ,
-        to : 'email@gmail.com',
-        subject : "SUBJECT",
-        html: '<p> Hello World </p>'
-      });
-*/
 /* Steam logic */
 var onSteamLogOn = function onSteamLogOn(){
         bot.setPersonaState(steam.EPersonaState.Busy); // to display your bot's status as "Online"
@@ -31,13 +15,7 @@ var onSteamLogOn = function onSteamLogOn(){
 
         Dota2.launch();
         Dota2.on("ready", function() {
-			//Dota2.matchDetailsRequest(1272369946,null); 
-			//Dota2.initalizeCallBack();
-			checkForGames();
-			//Dota2.profileRequest(Dota2.ToAccountID('76561198010772924'),true,null);
-			
-			
-			//Dota2.checkNewBloom();
+            console.log("Node-dota2 ready.");
             /* Note:  Should not declare new event listeners nested inside of
             'ready', else you could end up with duplicated handlers if 'ready'
             is fired multiple times.  Exception is made within this test file
@@ -155,8 +133,6 @@ var onSteamLogOn = function onSteamLogOn(){
         Dota2.on("unready", function onUnready(){
             console.log("Node-dota2 unready.");
         });
-		
-		
 
         Dota2.on("chatMessage", function(channel, personaName, message) {
             // util.log([channel, personaName, message].join(", "));
@@ -204,10 +180,3 @@ bot.on("loggedOn", onSteamLogOn)
     .on('sentry', onSteamSentry)
     .on('servers', onSteamServers)
     .on('webSessionID', onWebSessionID);
-	
-checkForGames = function()
-{
-		Dota2.getPlayerMatchHistory(config.steam32,null);
-		//setTimeout(this.checkForGames,3600000);
-		setTimeout(checkForGames,3600000);
-}

@@ -51,17 +51,15 @@ var handlers = Dota2.Dota2Client.prototype._handlers;
 handlers[Dota2.EDOTAGCMsg.k_EMsgGCMatchDetailsResponse] = function onMatchDetailsResponse(message, callback) {
   callback = callback || null;
   var matchDetailsResponse = dota_gcmessages_client.CMsgGCMatchDetailsResponse.parse(message);
-  var replayURL;
 
   if (matchDetailsResponse.result === 1) {
     if (this.debug) util.log("Received match data for: " + matchDetailsResponse.match.matchId);
-	//if (this.debug) util.log("matchData: " + util.inspect(matchDetailsResponse, {showHidden: false, depth: null}));
-    //this.emit("matchData", matchDetailsResponse.match.matchId, matchDetailsResponse);
-	replayURL = "http://replay" + matchDetailsResponse.match.cluster + ".valve.net/570/" + matchDetailsResponse.match.matchId + "_" + matchDetailsResponse.match.replaySalt +".dem.bz2";
-    if (callback) callback(replayURL,matchDetailsResponse.match.replayState,matchDetailsResponse.match.matchId);
+    this.emit("matchData", matchDetailsResponse.match.matchId, matchDetailsResponse);
+    if (callback) callback(null, matchDetailsResponse);
   }
   else {
       if (this.debug) util.log("Received a bad matchDetailsResponse");
+      if (callback) callback(matchDetailsResponse.result, matchDetailsResponse);
   }
 };
 
