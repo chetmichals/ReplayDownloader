@@ -20,7 +20,7 @@ Dota2.Dota2Client.prototype.getPlayerMatchHistory = function(accountId, callback
     if (this.debug) util.log("Sending player match history request");
     var payload = dota_gcmessages_client.CMsgDOTAGetPlayerMatchHistory.serialize({
         "accountId": accountId,
-        "matchesRequested": 10,
+        "matchesRequested": 3,
         "heroId": 0,
         "requestId": 0
     });

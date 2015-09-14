@@ -86,6 +86,7 @@ Dota2.Dota2Client.prototype.downloadMatch = function(replayURL,infoCode,matchID)
 	{
 		var fileName = matchID + ".dem.bz2";
 		util.log("Trying to download file " + fileName);
+		util.log("Full Replay URL: " + replayURL);
 		var download = fs.createWriteStream(fileName);
 		
 		var request = http.get(replayURL, function(response) 
@@ -111,14 +112,16 @@ Dota2.Dota2Client.prototype.downloadMatch = function(replayURL,infoCode,matchID)
 					catch(e)
 					{
 						console.log("Error: " + e);
+						db.run("INSERT INTO matchLog (matchID, downloaded, availability) values (?,0,'DNS_ERROR')",matchID);
 					}
 				}); 
 				
 			});
 		});
-		
-		
-		util.log(replayURL);
+		request.on('error', function (err) {
+			console.log("Error when downloading file: " + err);
+			db.run("INSERT INTO matchLog (matchID, downloaded, availability) values (?,0,'DNS_ERROR')",matchID);
+		});
 	}
 }
 
